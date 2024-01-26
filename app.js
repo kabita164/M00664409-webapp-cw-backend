@@ -25,11 +25,9 @@ app.get("/lessons", (req, res) => {
     .find()
     .toArray()
     .then((lessons) => {
-      console.log("Fetched lessons:", lessons);
       res.status(200).json(lessons);
     })
     .catch((err) => {
-      console.error("Error fetching lessons:", err);
       res.status(500).json({ error: "Could not fetch the documents" });
     });
 });
@@ -50,5 +48,34 @@ app.put("/lessons/:id", (req, res) => {
     })
     .catch((err) => {
       res.status(500).json({ error: "Error updating lesson" });
+    });
+});
+
+// Add new order
+app.post("/order", (req, res) => {
+  const orderData = req.body;
+
+  // Basic validation
+  if (
+    !orderData.name ||
+    !orderData.phone ||
+    !orderData.lessonIds ||
+    !orderData.space
+  ) {
+    return res.status(400).json({ error: "Missing order data" });
+  }
+
+  console.log("order data", orderData);
+
+  db.collection("order")
+    .insertOne(orderData)
+    .then((result) => {
+      res.status(201).json({
+        message: "Order saved successfully",
+        orderId: result.insertedId,
+      });
+    })
+    .catch((err) => {
+      res.status(500).json({ error: "Error saving order" });
     });
 });
