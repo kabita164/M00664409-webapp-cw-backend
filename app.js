@@ -1,5 +1,6 @@
 const express = require("express");
 const cors = require("cors");
+const { ObjectId } = require("mongodb");
 const { connectToDatabase, getDatabase } = require("./db");
 
 let app = express();
@@ -18,12 +19,14 @@ connectToDatabase((err) => {
 });
 
 // Routes
+// Get all lessons
 app.get("/lessons", (req, res) => {
   db.collection("lessons")
     .find()
     .toArray()
     .then((lessons) => {
       console.log("Fetched lessons:", lessons);
+      res.status(200).json(lessons);
     })
     .catch((err) => {
       console.error("Error fetching lessons:", err);
@@ -31,21 +34,21 @@ app.get("/lessons", (req, res) => {
     });
 });
 
-app.param("collectionName", function (req, res, next, collectionName) {
-  req.collection = db.collection(collectionName);
-  next();
-});
+// Update lesson data
+app.put("/lessons/:id", (req, res) => {
+  const updateData = req.body;
 
-app.get("/collections/:collectionName", (req, res) => {
-  req.collection
-    .find()
-    .toArray()
-    .then((results) => {
-      console.log("Query successful, results:", results);
-      res.status(200).json(results);
+  db.collection("lessons")
+    .updateOne(
+      { _id: new ObjectId(req.params.id) },
+      { $set: updateData },
+      { safe: true },
+      { multi: false }
+    )
+    .then((result) => {
+      res.status(200).json({ message: "Lesson updated successfully" });
     })
     .catch((err) => {
-      console.error("Error during MongoDB query:", err);
-      res.status(500).json({ error: "Error during MongoDB query" });
+      res.status(500).json({ error: "Error updating lesson" });
     });
 });
