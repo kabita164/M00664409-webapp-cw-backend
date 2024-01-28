@@ -7,6 +7,20 @@ let app = express();
 app.use(cors());
 app.use(express.json());
 
+// Logger middleware to output all requests
+function logger(req, res, next) {
+  const now = new Date();
+  const formattedDate = now.toLocaleString("en-GB");
+  const method = req.method;
+  const url = req.url;
+  const status = res.statusCode;
+  console.log(
+    `Request log: ${formattedDate} - ${method}:${url}, status: ${status}`
+  );
+  next();
+}
+app.use(logger);
+
 // database connection
 let db;
 connectToDatabase((err) => {
@@ -65,8 +79,6 @@ app.post("/order", (req, res) => {
   ) {
     return res.status(400).json({ error: "Missing order data" });
   }
-
-  console.log("order data", orderData);
 
   db.collection("order")
     .insertOne(orderData)
