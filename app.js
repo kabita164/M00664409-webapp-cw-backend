@@ -92,3 +92,23 @@ app.post("/order", (req, res) => {
       res.status(500).json({ error: "Error saving order" });
     });
 });
+
+// Search route
+app.get("/search", (req, res) => {
+  const searchQuery = req.query.q;
+
+  db.collection("lessons")
+    .find({
+      $or: [
+        { topic: new RegExp(searchQuery, "i") },
+        { location: new RegExp(searchQuery, "i") },
+      ],
+    })
+    .toArray()
+    .then((results) => {
+      res.status(200).json(results);
+    })
+    .catch((err) => {
+      res.status(500).json({ error: "An error occured during search" });
+    });
+});
